@@ -1,2 +1,2 @@
-# IE104-FlowerShop-BE
-Backend for Flower shop website in IE104-UIT
+# SE347-BE
+Backend for Flower shop website in SE347-UIT
