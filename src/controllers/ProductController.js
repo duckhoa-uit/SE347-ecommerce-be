@@ -1,9 +1,16 @@
 const Product = require('../model/product');
 const getPagination = require('../helper/getPagination');
+const cloudinary = require('../config/cloudinary');
 
 class ProductController {
 	createProduct = async (req, res) => {
 		const newProduct = new Product(req.body);
+		const result = await cloudinary.uploader.upload(req.file[0].path);
+		console.log(
+			'🚀 ~ file: ProductController.js:9 ~ ProductController ~ createProduct= ~ result',
+			result
+		);
+
 		try {
 			console.log(newProduct);
 			const savedProduct = await newProduct.save();
