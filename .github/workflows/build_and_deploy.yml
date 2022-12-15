@@ -17,6 +17,7 @@ on:
 env:
   REGISTRY: registry.digitalocean.com/duckhoa-uit
   IMAGE_NAME: konsept
+  EXPOSE_PORT: 8888
 
 #3
 jobs:
@@ -55,7 +56,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
-          envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA
+          envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA, EXPOSE_PORT
           script: |
             # Login to registry
             docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} registry.digitalocean.com
@@ -66,5 +67,6 @@ jobs:
             # Run a new container from a new image
             docker run -d \
             --restart always \
+            -p $(echo $EXPOSE_PORT):$(echo $EXPOSE_PORT) \
             --name $(echo $IMAGE_NAME) \
             $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
