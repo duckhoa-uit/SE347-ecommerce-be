@@ -16,7 +16,7 @@ on:
 #2
 env:
   REGISTRY: registry.digitalocean.com/duckhoa-uit
-  IMAGE_NAME: duckhoa-uit/konsept
+  IMAGE_NAME: konsept
 
 #3
 jobs:
