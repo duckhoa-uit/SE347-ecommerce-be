@@ -14,5 +14,5 @@ ENV NETLIFY_BLURHASH_URI=https://elegant-griffin-5fd0c1.netlify.app/.netlify/fun
 WORKDIR /app
 COPY . .
 RUN npm install
-EXPOSE 5001
+EXPOSE ${PORT}
 ENTRYPOINT ["npm", "start"]
