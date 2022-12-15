@@ -15,7 +15,8 @@ on:
         required: true
 #2
 env:
-  REGISTRY: registry.digitalocean.com/duckhoa-uit
+  REGISTRY: registry.hub.docker.com/khoavhd
+  DOCKER_USERNAME: khoavhd
   IMAGE_NAME: konsept
   EXPOSE_PORT: 8888
 
@@ -28,26 +29,31 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build container image
-        run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) .
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/$(echo $IMAGE_NAME) .
 
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      # - name: Install doctl
+      #   uses: digitalocean/action-doctl@v2
+      #   with:
+      #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-      - name: Log in to DigitalOcean Container Registry with short-lived credentials
-        run: doctl registry login --expiry-seconds 600
+      # - name: Log in to DigitalOcean Container Registry with short-lived credentials
+      #   run: doctl registry login --expiry-seconds 600
 
-      - name: Remove all old images
-        run: if [ ! -z "$(doctl registry repository list | grep "$(echo $IMAGE_NAME)")" ]; then doctl registry repository delete-manifest $(echo $IMAGE_NAME) $(doctl registry repository list-tags $(echo $IMAGE_NAME) | grep -o "sha.*") --force; else echo "No repository"; fi
+      # - name: Remove all old images
+      #   run: if [ ! -z "$(doctl registry repository list | grep "$(echo $IMAGE_NAME)")" ]; then doctl registry repository delete-manifest $(echo $IMAGE_NAME) $(doctl registry repository list-tags $(echo $IMAGE_NAME) | grep -o "sha.*") --force; else echo "No repository"; fi
 
-      - name: Push image to DigitalOcean Container Registry
-        run: docker push $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
+      - name: Push image to Container Registry
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/$(echo $IMAGE_NAME)
 
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_push
-
+    # TODO: change to docker swarm for server down issue during deployment
     steps:
       - name: Deploy to Digital Ocean droplet via SSH action
         uses: appleboy/ssh-action@v0.1.3
@@ -56,10 +62,10 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSHKEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
-          envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA, EXPOSE_PORT
+          envs: IMAGE_NAME,REGISTRY,{{ secrets.DOCKER_HUB_USERNAME }}, {{ secrets.DOCKER_HUB_TOKEN }},GITHUB_SHA, EXPOSE_PORT
           script: |
             # Login to registry
-            docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} registry.digitalocean.com
+            docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
             # Stop running container
             docker stop $(echo $IMAGE_NAME)
             # Remove old container
@@ -69,4 +75,4 @@ jobs:
             --restart always \
             -p $(echo $EXPOSE_PORT):$(echo $EXPOSE_PORT) \
             --name $(echo $IMAGE_NAME) \
-            $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
+            ${{ secrets.DOCKER_HUB_USERNAME }}/$(echo $IMAGE_NAME)
