@@ -4,23 +4,50 @@ const cloudinary = require('../config/cloudinary');
 
 class ProductController {
 	createProduct = async (req, res) => {
-		const newProduct = new Product(req.body);
-		const result = await cloudinary.uploader.upload(req.file[0].path);
-		console.log(
-			'🚀 ~ file: ProductController.js:9 ~ ProductController ~ createProduct= ~ result',
-			result
-		);
+		try {
+			const promises = req.files.map((file) =>
+				cloudinary.uploader.upload(file.path, {
+					responsive_breakpoints: {
+						create_derived: true,
+						bytes_step: 100000,
+						min_width: 400,
+						max_width: 1200,
+						transformation: {
+							gravity: 'auto',
+						},
+					},
+				})
+			);
+			const result = await Promise.all(promises);
+			// const result = await cloudinary.uploader.upload(req.files[0].path);
+			console.log(
+				'🚀 ~ file: ProductController.js:10 ~ ProductController ~ createProduct= ~ result',
+				result
+			);
+		} catch (error) {
+			console.log(error);
+			return res.json({
+				data: undefined,
+				errorCode: 500,
+				message: error,
+			});
+		}
 
+		const newProduct = new Product(req.body);
 		try {
 			console.log(newProduct);
 			const savedProduct = await newProduct.save();
-			const response = {
+
+			return res.json({
 				data: savedProduct,
 				errorCode: 0,
 				message: 'Create product successfully',
-			};
-			return res.json(response);
+			});
 		} catch (err) {
+			console.log(
+				'🚀 ~ file: ProductController.js:33 ~ ProductController ~ createProduct= ~ err',
+				err
+			);
 			const response = {
 				errorCode: 500,
 				message: 'Something went wrong, please try again',
