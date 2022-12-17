@@ -45,7 +45,7 @@ jobs:
     needs: build_and_push
     # TODO: change to docker swarm for server down issue during deployment
     steps:
-      - name: Deploy to Digital Ocean droplet via SSH action
+      - name: Re-deploy using docker swarm
         uses: appleboy/ssh-action@v0.1.3
         with:
           host: ${{ secrets.HOST }}
@@ -56,13 +56,5 @@ jobs:
           script: |
             # Login to registry
             docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
-            # Stop running container
-            docker stop $(echo $IMAGE_NAME)
-            # Remove old container
-            docker rm $(echo $IMAGE_NAME)
-            # Run a new container from a new image
-            docker run -d \
-            --restart always \
-            -p $(echo $EXPOSE_PORT):$(echo $EXPOSE_PORT) \
-            --name $(echo $IMAGE_NAME) \
-            ${{ secrets.DOCKER_HUB_USERNAME }}/$(echo $IMAGE_NAME)
+            # Update service backend
+            docker stack deploy --compose-file ~/konsept/backend/docker-compose.yml konsept
