@@ -2,6 +2,10 @@ const Product = require('../model/product');
 const getPagination = require('../helper/getPagination');
 const cloudinary = require('../config/cloudinary');
 
+const path = require('path');
+const { blurhashEncode } = require('../helper/blurhash');
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+
 class ProductController {
 	createProduct = async (req, res) => {
 		try {
@@ -18,24 +22,25 @@ class ProductController {
 					},
 				})
 			);
-			const result = await Promise.all(promises);
-			// const result = await cloudinary.uploader.upload(req.files[0].path);
-			console.log(
-				'🚀 ~ file: ProductController.js:10 ~ ProductController ~ createProduct= ~ result',
-				result
-			);
-		} catch (error) {
-			console.log(error);
-			return res.json({
-				data: undefined,
-				errorCode: 500,
-				message: error,
-			});
-		}
+			const uploadedImages = await Promise.all(promises);
 
-		const newProduct = new Product(req.body);
-		try {
-			console.log(newProduct);
+			const blurhashImagesPromises = req.files.map((file) => blurhashEncode(file.path));
+			const blurhashImages = await Promise.all(blurhashImagesPromises);
+
+			const transformedImages = uploadedImages.map((img, index) => {
+				return {
+					...img,
+					responsive_breakpoints:
+						img.responsive_breakpoints.length > 0 ? img.responsive_breakpoints[0].breakpoints : [],
+					blurhash: blurhashImages[index],
+				};
+			});
+			console.log(
+				'🚀 ~ file: ProductController.js:36 ~ ProductController ~ transformedImages ~ transformedImages',
+				transformedImages
+			);
+
+			const newProduct = new Product({ ...req.body, images: transformedImages });
 			const savedProduct = await newProduct.save();
 
 			return res.json({
@@ -43,18 +48,15 @@ class ProductController {
 				errorCode: 0,
 				message: 'Create product successfully',
 			});
-		} catch (err) {
-			console.log(
-				'🚀 ~ file: ProductController.js:33 ~ ProductController ~ createProduct= ~ err',
-				err
-			);
-			const response = {
+		} catch (error) {
+			return res.json({
+				data: undefined,
 				errorCode: 500,
-				message: 'Something went wrong, please try again',
-			};
-			return res.json(response);
+				message: error,
+			});
 		}
 	};
+
 	updateProduct = async (req, res) => {
 		try {
 			const object = { ...req.body };

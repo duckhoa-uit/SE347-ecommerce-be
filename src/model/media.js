@@ -13,6 +13,7 @@ const MediaSchema = new mongoose.Schema(
 		created_at: { type: String, required: true },
 		url: { type: String, required: true },
 		secure_url: { type: String, required: true },
+		// responsive_breakpoints: { type: Array(), default: [] },
 	},
 	{ timestamps: true }
 );
