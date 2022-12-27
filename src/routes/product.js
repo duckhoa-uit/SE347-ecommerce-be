@@ -6,7 +6,7 @@ const ProductController = require('../controllers/ProductController');
 const upload = require('../config/multer');
 
 //CREATE - OK
-router.post('/', verifyTokenAndAdmin, upload.array('images', 6), ProductController.createProduct);
+router.post('/', verifyTokenAndAdmin, ProductController.createProduct);
 
 //UPDATE PRODUCT - OK
 router.put('/:id', verifyTokenAndAdmin, ProductController.updateProduct);

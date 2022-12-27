@@ -5,6 +5,7 @@ const connectDB = require('./src/config/db');
 const initRoute = require('./src/routes/index');
 const cors = require('cors');
 const path = require('path');
+const bodyParser = require('body-parser');
 
 app.use(cors());
 dotenv.config({ path: path.join(__dirname, './.env') });
@@ -12,15 +13,15 @@ connectDB.connect();
 
 //Middeware
 
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use(
-	express.urlencoded({
-		extended: true,
-	})
+  express.urlencoded({
+    extended: true,
+  })
 );
 
 initRoute(app);
 
 app.listen(process.env.PORT || 5000, () => {
-	console.log('Backend server is running!');
+  console.log('Backend server is running!');
 });
