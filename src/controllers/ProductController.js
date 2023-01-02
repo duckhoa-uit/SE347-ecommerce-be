@@ -1,4 +1,5 @@
 const Product = require('../model/product');
+const Review = require('../model/review');
 const getPagination = require('../helper/getPagination');
 const cloudinary = require('../config/cloudinary');
 
@@ -122,12 +123,17 @@ class ProductController {
     }
   };
   readProduct = async (req, res) => {
-    // const { recommend } = req.query;
-
     try {
+      const reviews = await Review.find({
+        productId: req.params.id,
+        deleted: false,
+      }).sort({
+        createdAt: 'desc',
+      });
+
       const product = await Product.findById(req.params.id);
       const response = {
-        data: product,
+        data: { ...product._doc, reviews },
         errorCode: 0,
         message: 'Success',
       };
