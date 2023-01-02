@@ -122,6 +122,8 @@ class ProductController {
     }
   };
   readProduct = async (req, res) => {
+    // const { recommend } = req.query;
+
     try {
       const product = await Product.findById(req.params.id);
       const response = {

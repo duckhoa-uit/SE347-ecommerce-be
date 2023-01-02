@@ -7,6 +7,7 @@ const mediaRoute = require('./media');
 const categoryRoute = require('./category');
 const supplierRoute = require('./supplier');
 const purchaseOrderRoute = require('./purchaseOrder');
+const reviewRoute = require('./review');
 
 const initRouter = (app) => {
   app.use('/api/users', userRoute);
@@ -18,6 +19,7 @@ const initRouter = (app) => {
   app.use('/api/categories', categoryRoute);
   app.use('/api/suppliers', supplierRoute);
   app.use('/api/purchase-orders', purchaseOrderRoute);
+  app.use('/api/reviews', reviewRoute);
   app.use('/', (req, res) => {
     return res.json({ status: 'OK' });
   });
