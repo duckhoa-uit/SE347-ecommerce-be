@@ -1,10 +1,13 @@
 const Product = require('../model/product');
+const User = require('../model/user');
 const Review = require('../model/review');
 const getPagination = require('../helper/getPagination');
 const cloudinary = require('../config/cloudinary');
 
 const path = require('path');
 const { blurhashEncode } = require('../helper/blurhash');
+const review = require('../model/review');
+const order = require('../model/order');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 class ProductController {
@@ -124,21 +127,52 @@ class ProductController {
   };
   readProduct = async (req, res) => {
     try {
-      const reviews = await Review.find({
+      let reviews = await Review.find({
         productId: req.params.id,
         deleted: false,
       }).sort({
         createdAt: 'desc',
       });
+      const promises = reviews.map(async (rv) => {
+        const user = await User.findOne({ _id: rv._doc.userId });
+        return user
+          ? {
+              ...rv._doc,
+              sender: user._doc,
+            }
+          : rv._doc;
+      });
+      reviews = await Promise.all(promises);
 
       const product = await Product.findById(req.params.id);
+
+      let hasBought = false;
+      if (req.user) {
+        const orders = await order
+          .find({
+            userId: req.user.id,
+            deleted: false,
+          })
+          .sort({
+            createdAt: 'desc',
+          });
+        const productIds = orders.reduce(
+          (prev, curr) => [...prev, ...curr._doc.products.map((product) => product.productId)],
+          []
+        );
+        if (productIds.includes(req.params.id)) hasBought = true;
+      }
       const response = {
-        data: { ...product._doc, reviews },
+        data: { ...product._doc, reviews, hasBought },
         errorCode: 0,
         message: 'Success',
       };
       return res.json(response);
     } catch (err) {
+      console.log(
+        '🚀 ~ file: ProductController.js:164 ~ ProductController ~ readProduct= ~ err',
+        err
+      );
       const response = {
         errorCode: 500,
         message: 'Something went wrong, please try again',

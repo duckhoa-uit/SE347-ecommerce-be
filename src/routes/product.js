@@ -4,6 +4,7 @@ const verifyObjectId = require('../middleware/verifyObjectId');
 const router = express.Router();
 const ProductController = require('../controllers/ProductController');
 const upload = require('../config/multer');
+const jwt = require('jsonwebtoken');
 
 //CREATE - OK
 router.post('/', verifyTokenAndAdmin, ProductController.createProduct);
@@ -21,7 +22,23 @@ router.delete('/:id', verifyTokenAndAdmin, ProductController.deleteProduct);
 router.delete('/destroy/:id', verifyTokenAndAdmin, ProductController.destroyProduct);
 
 //GET PRODUCT
-router.get('/:id', verifyObjectId, ProductController.readProduct);
+router.get(
+  '/:id',
+  (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.split(' ')[1];
+      jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (!err) {
+          req.user = user;
+        }
+      });
+    }
+    next();
+  },
+  verifyObjectId,
+  ProductController.readProduct
+);
 
 //GET ALL PRODUCT CATEGORY
 router.get('/', ProductController.readAllProductCategory);
