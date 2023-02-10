@@ -7,32 +7,12 @@ const ProductSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     desc: { type: String, required: true },
-    // images: [
-    //   {
-    //     asset_id: { type: String, required: true },
-    //     blurhash: { type: String, required: true },
-    //     bytes: { type: Number, required: true },
-    //     format: { type: String, required: true },
-    //     height: { type: Number, required: true },
-    //     original_filename: { type: String, required: true },
-    //     public_id: { type: String, required: true },
-    //     resource_type: { type: String, required: true },
-    //     responsive_breakpoints: [
-    //       {
-    //         width: { type: Number, required: true },
-    //         height: { type: Number, required: true },
-    //         bytes: { type: Number, required: true },
-    //         url: { type: String, required: true },
-    //         secure_url: { type: String, required: true },
-    //       },
-    //     ],
-    //     secure_url: { type: String, required: true },
-    //     url: { type: String, required: true },
-    //     width: { type: Number, required: true },
-    //   },
-    // ],
     photo: {
       public_id: {
+        type: String,
+        required: true,
+      },
+      name: {
         type: String,
         required: true,
       },
@@ -41,6 +21,12 @@ const ProductSchema = new mongoose.Schema(
         required: true,
       },
     },
+    variants: [
+      {
+        size: { type: Number },
+        qty: { type: Number },
+      },
+    ],
     categories: { type: Array },
     size: { type: Array },
     color: { type: Array },

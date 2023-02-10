@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const mongoosePaginate = require("mongoose-paginate-v2");
+const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const OrderSchema = new mongoose.Schema(
   {
@@ -12,6 +12,9 @@ const OrderSchema = new mongoose.Schema(
         quantity: {
           type: Number,
         },
+        size: {
+          type: Number,
+        },
         amount: {
           type: Number,
         },
@@ -22,24 +25,24 @@ const OrderSchema = new mongoose.Schema(
     ],
     amount: { type: Number, require: true },
     deliveryInfo: {
-      name: { type: String, default: "" },
-      phone: { type: String, default: "" },
+      name: { type: String, default: '' },
+      phone: { type: String, default: '' },
       address: {
-        province: { type: String, default: "" },
-        district: { type: String, default: "" },
-        ward: { type: String, default: "" },
-        street: { type: String, default: "" },
+        province: { type: String, default: '' },
+        district: { type: String, default: '' },
+        ward: { type: String, default: '' },
+        street: { type: String, default: '' },
       },
-      email: { type: String, default: "" },
+      email: { type: String, default: '' },
     },
     isPaid: { type: Boolean, default: false },
     payment: {
       type: String,
-      enum: ["COD", "PayPal"],
-      default: "COD",
+      enum: ['COD', 'PayPal'],
+      default: 'COD',
     },
-    status: { type: String, default: "PENDING" },
-    notes: { type: String, default: "" },
+    status: { type: String, default: 'PENDING' },
+    notes: { type: String, default: '' },
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
   },
@@ -48,4 +51,4 @@ const OrderSchema = new mongoose.Schema(
 
 OrderSchema.plugin(mongoosePaginate);
 
-module.exports = mongoose.model("Order", OrderSchema);
+module.exports = mongoose.model('Order', OrderSchema);

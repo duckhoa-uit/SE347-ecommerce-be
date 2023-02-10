@@ -1,5 +1,5 @@
-const Cart = require("../model/cart");
-const Product = require("../model/product");
+const Cart = require('../model/cart');
+const Product = require('../model/product');
 
 class CartController {
   createCart = async (req, res) => {
@@ -14,19 +14,18 @@ class CartController {
       const response = {
         data: savedCart,
         errorCode: 0,
-        message: "Create cart successfully",
+        message: 'Create cart successfully',
       };
       return res.json(response);
     } catch (err) {
       const response = {
         errorCode: 500,
-        message: "Something went wrong, please try again",
+        message: 'Something went wrong, please try again',
       };
       return res.json(response);
     }
   };
   updateCart = async (req, res) => {
-    //   console.log("Check>>here", req.params.id);
     try {
       const updatedCart = await Cart.findByIdAndUpdate(
         req.params.id,
@@ -38,13 +37,13 @@ class CartController {
       const response = {
         data: updatedCart,
         errorCode: 0,
-        message: "Update cart successfully",
+        message: 'Update cart successfully',
       };
       return res.json(response);
     } catch (err) {
       const response = {
         errorCode: 500,
-        message: "Something went wrong, please try again",
+        message: 'Something went wrong, please try again',
       };
       return res.json(response);
     }
@@ -52,36 +51,34 @@ class CartController {
   addItemToCart = async (req, res) => {
     try {
       //get data
-      const { productId, quantity } = req.body;
-      let item = { productId, quantity };
+      const { productId, size, quantity } = req.body;
+      let item = { productId, size, quantity };
 
       //Check validate
       const cart = await Cart.findOne({ userId: req.user.id });
       if (cart._id.toString() !== req.params.id) {
         const response = {
           errorCode: 400,
-          message: "Incorrect information",
+          message: 'Incorrect information',
         };
         return res.json(response);
       }
 
       //Xu li du lieu
       let oldProducts = cart.products;
-      const filterProducts = oldProducts.filter(
-        (product) => product.productId !== productId
-      );
+      const filterProducts = oldProducts.filter((product) => product.productId !== productId);
 
       let products = filterProducts.map((item) => {
-        const p = {
+        return {
           productId: item.productId,
           quantity: item.quantity,
+          size: item.size,
         };
-        return p;
       });
 
       let duplicate = [];
       duplicate = oldProducts.filter(
-        (product) => product.productId === productId
+        (product) => product.productId === productId && product.size === size
       );
 
       if (duplicate.length > 0) {
@@ -89,6 +86,7 @@ class CartController {
           ...products,
           {
             productId: duplicate[0].productId,
+            size: duplicate[0].size,
             quantity: Number(duplicate[0].quantity) + Number(quantity),
           },
         ];
@@ -97,11 +95,11 @@ class CartController {
           ...products,
           {
             productId: productId,
+            size: size,
             quantity: quantity,
           },
         ];
       }
-
       const updatedCart = await Cart.findByIdAndUpdate(
         req.params.id,
         {
@@ -112,7 +110,7 @@ class CartController {
       const response = {
         data: updatedCart,
         errorCode: 0,
-        message: "Added item to cart successful",
+        message: 'Added item to cart successful',
       };
       return res.json(response);
     } catch (error) {
@@ -129,13 +127,13 @@ class CartController {
       await Cart.findByIdAndDelete(req.params.id);
       const response = {
         errorCode: 0,
-        message: "Cart has been deleted...",
+        message: 'Cart has been deleted...',
       };
       return res.json(response);
     } catch (err) {
       const response = {
         errorCode: 500,
-        message: "Something went wrong, please try again",
+        message: 'Something went wrong, please try again',
       };
       return res.json(response);
     }
@@ -151,7 +149,7 @@ class CartController {
       if (cart._id.toString() !== req.params.id) {
         const response = {
           errorCode: 400,
-          message: "Incorrect information",
+          message: 'Incorrect information',
         };
         return res.json(response);
       }
@@ -166,19 +164,18 @@ class CartController {
       const response = {
         data: updatedCart,
         errorCode: 0,
-        message: "Delete Item Successfull",
+        message: 'Delete Item Successfull',
       };
       return res.json(response);
     } catch (err) {
       const response = {
         errorCode: 500,
-        message: "Something went wrong, please try again",
+        message: 'Something went wrong, please try again',
       };
       return res.json(response);
     }
   };
   readUserCart = async (req, res) => {
-    // console.log(">>Check get cart", req.params.userId);
     try {
       const cart = await Cart.findOne({ userId: req.user.id });
 
@@ -186,16 +183,18 @@ class CartController {
       let arrayProduct = [];
       let arrayID = [];
       let quantity = [];
+      let sizes = [];
       cart.products.forEach((item) => {
         arrayID.push(item.productId);
         quantity.push(item.quantity);
+        sizes.push(item.size);
       });
 
-      const Products = await Product.find();
+      arrayFilterProduct = await Product.find({ _id: { $in: arrayID } });
       // Products.forEach((item) => console.log(item._id.toString()));
-      arrayFilterProduct = Products.filter((item) =>
-        arrayID.includes(item._id.toString())
-      );
+      // arrayFilterProduct = Products.filter((item) =>
+      //   arrayID.includes(item._id.toString())
+      // );
 
       for (let i = 0; i < arrayID.length; i++) {
         arrayFilterProduct.forEach((item) => {
@@ -203,6 +202,7 @@ class CartController {
             const newProduct = {
               ...item._doc,
               quantity: quantity[i],
+              size: sizes[i],
             };
             arrayProduct.push(newProduct);
           }
@@ -212,7 +212,7 @@ class CartController {
       const response = {
         data: { ...cart._doc, products: arrayProduct },
         errorCode: 0,
-        message: "Success",
+        message: 'Success',
       };
 
       // console.log(response.data);
@@ -221,7 +221,7 @@ class CartController {
     } catch (err) {
       const response = {
         errorCode: 500,
-        message: "Something went wrong, please try again",
+        message: 'Something went wrong, please try again',
       };
       return res.json(response);
     }
@@ -232,13 +232,13 @@ class CartController {
       const response = {
         data: carts,
         errorCode: 0,
-        message: "Success",
+        message: 'Success',
       };
       return res.json(response);
     } catch (err) {
       const response = {
         errorCode: 500,
-        message: "Something went wrong, please try again",
+        message: 'Something went wrong, please try again',
       };
       return res.json(response);
     }
